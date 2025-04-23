@@ -2,3 +2,5 @@
 *.log
 *.zip
 *WORLD*
+*.gz
+logs
