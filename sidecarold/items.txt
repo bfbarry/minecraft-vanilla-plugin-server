@@ -1,0 +1,11 @@
+minecraft:diamond_sword[minecraft:enchantments={sharpness:2,unbreaking:100}]
+minecraft:bow[minecraft:enchantments={power:2,unbreaking:100,infinity:1}]
+steak 64
+minecraft:splash_potion[minecraft:potion_contents={custom_effects:[{id:instant_health,amplifier:1,show_particles:1}]}] 12
+minecraft:splash_potion[minecraft:potion_contents={custom_effects:[{id:speed,amplifier:1,duration:2400,show_particles:1}]}]
+ender_pearl 64
+arrow 1
+minecraft:iron_helmet[minecraft:enchantments={protection:1,unbreaking:100}]
+minecraft:iron_chestplate[minecraft:enchantments={protection:1,unbreaking:100}]
+minecraft:iron_leggings[minecraft:enchantments={protection:1,unbreaking:100}]
+minecraft:iron_boots[minecraft:enchantments={protection:1,feather_falling:4,unbreaking:100}]
