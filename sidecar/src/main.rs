@@ -1,16 +1,18 @@
+pub mod nbt;
+pub mod game;
 use std::{
     fs::File,
     io::{self, BufRead, BufReader},
     sync::{mpsc, Arc, Mutex},
     thread,
     time::Duration,
-    process::Command,
 };
 use regex::Regex;
 
 fn main() -> io::Result<()> {
+    // TODO: create constant root path to use across source
     let log_path = "/Users/brianbarry/Desktop/computing/minecraft-vanilla-plugin-server/logs/dummy_log.log";
-    let file = File::open(log_path)?;
+    let file = File::open(log_path).expect("log file not found");
     let mut reader = BufReader::new(file);
 
     let (sender, receiver) = mpsc::channel(); // communication w/ worker threads
@@ -31,7 +33,7 @@ fn main() -> io::Result<()> {
             }
         }
     });
-    let command_router = CommandRouter::new("mcserver".to_string()).unwrap(); //TODO unsafe
+    let command_router = game::CommandRouter::new("mcserver".to_string()).unwrap(); //TODO unsafe
     let command_router = Arc::new(command_router);
     let mut worker_handles = Vec::new();
 
@@ -62,73 +64,11 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-
-struct Message {
-    username: String,
-    command: String,
-    args: String
-}
-
-struct GameData {
-    kit_items: Vec<String>,
-}
-struct CommandRouter {
-    tmux_session_name: String,
-    game_cache: GameData,
-}
-
-impl CommandRouter {
-    fn new(tmux_session_name: String) -> io::Result<Self> {
-        let mut kit_items = Vec::new();
-
-        // Open the file items.txt
-        let file = File::open("src/items.txt")?;
-
-        // Read the file line by line
-        for line in io::BufReader::new(file).lines() {
-            let line = line?; // Handle any errors reading the line
-            kit_items.push(line); // Store each line in `kit_items`
-        }
-
-        Ok(CommandRouter {
-            tmux_session_name,
-            game_cache: GameData { kit_items },
-        })
-    }
-
-    fn run_command(&self, message: &Message) {
-        match &message.command[1..] {
-            "kit" => self.run_kit(message),
-            _ => ()
-        } 
-    }
-
-    fn run_kit(&self, message: &Message) {
-        for item in &self.game_cache.kit_items {
-            let minecraft_command = &format!("give {} {}", &message.username, item);
-            self._execute_in_server(minecraft_command);
-        }
-    }
-
-    fn _execute_in_server(&self, minecraft_command: &str) {
-        let status = Command::new("tmux")
-            .args(["send-keys", "-t", &self.tmux_session_name, minecraft_command, "C-m"])
-            .status();
-
-        match status {
-            Ok(status) if status.success() => (),
-            Err(e) => eprintln!("Error sending command to tmux: {}", e),
-            _ => eprint!("Other non zero exit"),
-        }
-    }
-}
-
-
-fn process_line(line: &str) -> Option<Message> {
+fn process_line(line: &str) -> Option<game::Message> {
     let re = Regex::new(r"\[\d{2}:\d{2}:\d{2}\] \[Server thread\/INFO\]: <(.*?)> (\.\w+)(?:\s+(.*))?").unwrap();
     
     if let Some(caps) = re.captures(line) {
-        Some(Message { 
+        Some(game::Message { 
             username : caps[1].to_string(),
             command : caps[2].to_string(),
             args : caps.get(3).map_or("", |m| m.as_str()).to_string(),
