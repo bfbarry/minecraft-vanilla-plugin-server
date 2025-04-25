@@ -4,9 +4,13 @@ use std::fs::File;
 use std::io::Read;
 use std::collections::HashMap;
 
+//TODO: this path
+// if 
+const PLAYERDATA_PATH: &str = "/Users/brianbarry/Library/Application Support/minecraft/saves/New World/playerdata";
+
 pub fn get_player_coords(uuid: &str) -> Result<Vec<f64>, Box<dyn std::error::Error>> {
 
-    let file = File::open(format!("/Users/brianbarry/Library/Application Support/minecraft/saves/New World/playerdata/{}.dat", uuid))?;
+    let file = File::open(format!("{}/{}.dat", PLAYERDATA_PATH, uuid))?;
     let mut decoder = GzDecoder::new(file);
     let mut nbt_data = Vec::new();
     decoder.read_to_end(&mut nbt_data)?;

@@ -41,15 +41,18 @@ fn main() -> io::Result<()> {
         let receiver = Arc::clone(&receiver);
         let command_router = Arc::clone(&command_router);
         let handle = thread::spawn(move || loop {
-            let receiver = receiver.lock().unwrap();
-            if let Ok(line) = receiver.recv() {
-                let result = process_line(&line);
-                if let Some(data) = result {
-                    command_router.run_command(&data);
+            let line = {
+                let receiver = receiver.lock().unwrap();
+                match receiver.recv() {
+                    Ok(line) => line,
+                    Err(_) => return, // TODO: more informative handling?
                 }
-                println!("processing line: {}", line);
+            };
+
+            //     println!("processing line: {}", line);
+            if let Some(data) = process_line(&line) {
+                command_router.run_command(&data);
             }
-            drop(receiver);
             // thread::sleep() simulate work
         });
         worker_handles.push(handle);

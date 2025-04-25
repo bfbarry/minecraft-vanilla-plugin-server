@@ -1,0 +1,1 @@
+- make game mode structs with interfaces so it's extensible
